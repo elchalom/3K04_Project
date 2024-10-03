@@ -30,7 +30,7 @@ def registerUser(username: str, password: str) -> tuple[bool, str]:
     credentials = pd.read_csv(file)
     size = credentials['Username'].size
     if size >= 10:
-        return (False, "Maximum Number of profiles reached")
+        return (False, "Maximum number of profiles reached")
     for i in range(size):
         if username == credentials['Username'][i]:
         # Checks if credentials already exis
@@ -39,6 +39,5 @@ def registerUser(username: str, password: str) -> tuple[bool, str]:
     credentials.loc[i+1,'Password'] = password
     
     credentials.to_csv(file, index = False)
-    return (True, "Registration Successful")
+    return (True, "Registration Successful, Login Now!")
     
-print ( registerUser("potatosadf", "dummythicc"))
