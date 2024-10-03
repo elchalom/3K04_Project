@@ -1,6 +1,6 @@
 import pandas as pd
 
-file = r"C:\Users\matth\Desktop\3K04\3K04_Project\DCM\testData.csv"
+file = r"\DCM\credentials.txt"
 testUser = 'matthew'
 testPassword = 'matthew1'
 
