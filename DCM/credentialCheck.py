@@ -4,9 +4,9 @@ import os
 file = os.path.join("DCM", "credentials.txt")
 
 def checkCredentials(username : str, password: str) -> bool :
-    if ('' == username | ' ' in username | ',' in username):
+    if ('' == username or ' ' in username or ',' in username):
         return False
-    if ('' == password | ' ' in password | ',' in password):
+    if ('' == password or ' ' in password or ',' in password):
         return False
         
     
@@ -22,9 +22,9 @@ def checkCredentials(username : str, password: str) -> bool :
     return False
 
 def registerUser(username: str, password: str) -> tuple[bool, str]:
-    if  ('' == username | ' ' in username | ',' in username):
+    if  ('' == username or ' ' in username or ',' in username):
         return (False, "Username contains invalid characters")
-    if ('' == password | ' ' in password | ',' in password):
+    if ('' == password or ' ' in password or ',' in password):
         return (False, "Password contains invalid characters")
     
     credentials = pd.read_csv(file)
@@ -34,11 +34,11 @@ def registerUser(username: str, password: str) -> tuple[bool, str]:
     for i in range(size):
         if username == credentials['Username'][i]:
         # Checks if credentials already exis
-            return (False, "Username Taken")
-    print(credentials)    
+            return (False, "Username Taken") 
     credentials.loc[i+1,'Username'] = username
     credentials.loc[i+1,'Password'] = password
     
     credentials.to_csv(file, index = False)
     return (True, "Registration Successful")
     
+print ( registerUser("potatosadf", "dummythicc"))
