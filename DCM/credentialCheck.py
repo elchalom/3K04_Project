@@ -1,6 +1,7 @@
 import pandas as pd
+import os
 
-file = r"\DCM\credentials.txt"
+file = os.path.join("DCM", "credentials.txt")
 testUser = 'matthew'
 testPassword = 'matthew1'
 
