@@ -2,8 +2,6 @@ import pandas as pd
 import os
 
 file = os.path.join("DCM", "credentials.txt")
-testUser = 'matthew'
-testPassword = 'matthew1'
 
 def checkCredentials(username : str, password: str) -> bool :
     credentials = pd.read_csv(file)
@@ -33,5 +31,3 @@ def registerUser(username: str, password: str) -> bool:
     credentials.to_csv(file, index = False)
     return True
     
-    
-registerUser('alex', 'alex123')
