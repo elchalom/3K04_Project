@@ -6,7 +6,7 @@ import os
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 from ui_form import Ui_LoginScreen
 from ui_home import Ui_HomeScreen
-print("Current Working Directory:", os.getcwd())
+
 file = os.path.join("credentials.txt")
 
 class LoginScreen(QWidget):
@@ -60,11 +60,9 @@ class LoginScreen(QWidget):
             elif (' ' in password or ',' in password):
                 self.show_popup_warning("Login Failed", "Username contains invalid characters (',' or ' '). Try again.")
             else:
-                print(range(size))
                 for i in range(size):
-                    print(i)
-                    if username == credentials['Username'][i]:
-                        if password == credentials['Password'][i]:
+                    if username == str(credentials['Username'][i]):
+                        if (password == str(credentials['Password'][i])):
                             self.show_new_screen(username)
                             return True
                         else:
@@ -106,8 +104,8 @@ class LoginScreen(QWidget):
                             # Checks if credentials already exis
                                 self.show_popup_warning("Registration Failed", "Username taken. Try again.")
                                 return(False)
-                        credentials.loc[size+1,'Username'] = username
-                        credentials.loc[size+1,'Password'] = password1
+                        credentials.loc[size+1,'Username'] = str(username)
+                        credentials.loc[size+1,'Password'] = str(password1)
 
                         credentials.to_csv(file, index = False)
                         self.show_popup_info("Registration Successful", "Please login using new credentials.")
