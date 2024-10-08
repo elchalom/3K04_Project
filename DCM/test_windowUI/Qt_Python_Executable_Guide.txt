@@ -1,0 +1,8 @@
+Activate your virtual environment:
+C:\Users\khana\OneDrive\Desktop\3K04\QT_testing\test_windowUI\.qtcreator\Python_3_12_6venv\Scripts\activate
+
+Navigate to your project directory where the main Python script (widget.py) is located:
+cd C:\Users\khana\OneDrive\Desktop\3K04\QT_testing\test_windowUI
+
+Generate the Executable:
+pyinstaller --onefile --noconsole widget.py --add-data "ui_form.py;." --add-data "ui_home.py;." --add-data "credentials.txt;."
