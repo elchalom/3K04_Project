@@ -61,8 +61,6 @@ class LoginScreen(QWidget):
         username = self.ui.username_input.text()
         password = self.ui.password_input.text()
 
-        credentials = pd.read_csv(file)
-        size = credentials['Username'].size
 
         # Simulate successful login by showing a new screen
         if username and password:  # Simple check for demonstration
@@ -71,6 +69,8 @@ class LoginScreen(QWidget):
             elif (' ' in password or ',' in password):
                 self.show_popup_warning("Login Failed", "Username contains invalid characters (',' or ' '). Try again.")
             else:
+                credentials = pd.read_csv(file)
+                size = credentials['Username'].size
                 for i in range(size):
                     if username == str(credentials['Username'][i]):
                         if (password == str(credentials['Password'][i])):
@@ -90,8 +90,6 @@ class LoginScreen(QWidget):
         password1 = self.ui.reg_password_input_1.text()
         password2 = self.ui.reg_password_input_2.text()
 
-        credentials = pd.read_csv(file, dtype=str)
-        size = credentials['Username'].size
 
         # If registration is successful
         # If there is content in all the input boxes
@@ -107,6 +105,8 @@ class LoginScreen(QWidget):
                 elif (len(password1) < 6):
                     self.show_popup_warning("Registration Failed", "Password too short (minimum 6 character). Try again.")
                 else:
+                    credentials = pd.read_csv(file, dtype=str)
+                    size = credentials['Username'].size
                     if (size >= 10):
                         self.show_popup_warning("Registration Failed", "Maximum number of profiles reached")
                     else:
