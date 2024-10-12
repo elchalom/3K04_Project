@@ -1,10 +1,13 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import pandas as pd
+import numpy as np
 import os
 
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QGraphicsDropShadowEffect
 from PySide6.QtGui import QColor
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 from ui_form import Ui_LoginScreen
 from ui_home import Ui_HomeScreen
@@ -18,7 +21,8 @@ else:
 # Construct the path to credentials.txt
 file = os.path.join(base_path, "credentials.txt")
 
-# file = os.path.join("credentials.txt")
+# Construct the path to parameters.txt
+parameters_file = os.path.join(base_path, "parameters.txt")
 
 class LoginScreen(QWidget):
     def __init__(self, parent=None):
@@ -148,11 +152,15 @@ class HomeScreen(QWidget):
         self.ui = Ui_HomeScreen()  # Create an instance of the new screen UI class
         self.ui.setupUi(self)  # Set up the UI
 
+        self.username = username
+        self.temp_serial = "SN10110.1001.1" # Serial number of the connected device
+        self.known_serial = "SN10110.1001.1" # Serial number of the user's device
+
         # Display Username
         self.ui.username.setText(username)
 
         # Logout Functionality
-        self.ui.signout.clicked.connect(self.show_login_screen)
+        self.ui.signout.clicked.connect(self.show_login_screen) # Signout button clicked
 
         # Add shadow to the connection_box and user_box
         self.add_shadow_to_widget(self.ui.connection_box)
@@ -162,12 +170,12 @@ class HomeScreen(QWidget):
         self.add_greenglow_to_widget(self.ui.connect_button)
         self.AOO_on()
 
-        # Initialize the connection state
+        # Temporarily set such that the connect button toggles, but it should check if it is connected
         self.connected = False
         self.ui.connect_button.clicked.connect(self.toggle_connection)
         self.ui.disconnect_button.clicked.connect(self.toggle_connection)
 
-        # Update the UI based on the connection state
+        # Update the UI based on the connection state and which device
         self.update_connection_status()
 
         # Logic for Mode states
@@ -176,16 +184,28 @@ class HomeScreen(QWidget):
         self.ui.VOO_mode.clicked.connect(self.VOO_on)
         self.ui.VVI_mode.clicked.connect(self.VVI_on)
 
+        # Initialize a blank plot in each graph widget
+        self.canvas_AOO, self.ax_AOO = self.init_plot(self.ui.graph_widget_AOO)
+        self.canvas_VOO, self.ax_VOO = self.init_plot(self.ui.graph_widget_VOO)
+        self.canvas_AAI, self.ax_AAI = self.init_plot(self.ui.graph_widget_AAI)
+        self.canvas_VVI, self.ax_VVI = self.init_plot(self.ui.graph_widget_VVI)
+
+        # Connect the buttons to update the corresponding plot
+        self.ui.AOO_submit.clicked.connect(self.update_plot_AOO)
+        self.ui.VOO_submit.clicked.connect(self.update_plot_VOO)
+        self.ui.AAI_submit.clicked.connect(self.update_plot_AAI)
+        self.ui.VVI_submit.clicked.connect(self.update_plot_VVI)
+
     def AOO_on(self):
         # show the corresponding parts for AOO mode
-        self.add_greenglow_to_widget(self.ui.AOO_mode) # add glow
-        self.ui.AOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #00b075;") # change background colour
+        self.add_redglow_to_widget(self.ui.AOO_mode) # add glow
+        self.ui.AOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #f64d59;") # change background colour
         self.ui.AOO_screen.show()  # Show the AOO screen
 
         # remove all other modes
-        self.remove_greenglow_from_widget(self.ui.AAI_mode) # remove glow
-        self.remove_greenglow_from_widget(self.ui.VOO_mode) # remove glow
-        self.remove_greenglow_from_widget(self.ui.VVI_mode) # remove glow
+        self.remove_glow(self.ui.AAI_mode) # remove glow
+        self.remove_glow(self.ui.VOO_mode) # remove glow
+        self.remove_glow(self.ui.VVI_mode) # remove glow
         self.ui.AAI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;") # change background colour
         self.ui.VOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;") # change background colour
         self.ui.VVI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;") # change background colour
@@ -195,14 +215,14 @@ class HomeScreen(QWidget):
 
     def AAI_on(self):
         # Show the corresponding parts for AAI mode
-        self.add_greenglow_to_widget(self.ui.AAI_mode)  # Add glow
-        self.ui.AAI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #00b075;")  # Change background color
+        self.add_redglow_to_widget(self.ui.AAI_mode)  # Add glow
+        self.ui.AAI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #f64d59;")  # Change background color
         self.ui.AAI_screen.show()  # Show the AAI screen
 
         # Remove all other modes
-        self.remove_greenglow_from_widget(self.ui.AOO_mode)  # Remove glow
-        self.remove_greenglow_from_widget(self.ui.VOO_mode)  # Remove glow
-        self.remove_greenglow_from_widget(self.ui.VVI_mode)  # Remove glow
+        self.remove_glow(self.ui.AOO_mode)  # Remove glow
+        self.remove_glow(self.ui.VOO_mode)  # Remove glow
+        self.remove_glow(self.ui.VVI_mode)  # Remove glow
         self.ui.AOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
         self.ui.VOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
         self.ui.VVI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
@@ -212,14 +232,14 @@ class HomeScreen(QWidget):
 
     def VOO_on(self):
         # Show the corresponding parts for VOO mode
-        self.add_greenglow_to_widget(self.ui.VOO_mode)  # Add glow
-        self.ui.VOO_mode.setStyleSheet(self.ui.VOO_mode.styleSheet() + "background-color: #00b075;")  # Change background color
+        self.add_redglow_to_widget(self.ui.VOO_mode)  # Add glow
+        self.ui.VOO_mode.setStyleSheet(self.ui.VOO_mode.styleSheet() + "background-color: #f64d59;")  # Change background color
         self.ui.VOO_screen.show()  # Show the VOO screen
 
         # Remove all other modes
-        self.remove_greenglow_from_widget(self.ui.AOO_mode)  # Remove glow
-        self.remove_greenglow_from_widget(self.ui.AAI_mode)  # Remove glow
-        self.remove_greenglow_from_widget(self.ui.VVI_mode)  # Remove glow
+        self.remove_glow(self.ui.AOO_mode)  # Remove glow
+        self.remove_glow(self.ui.AAI_mode)  # Remove glow
+        self.remove_glow(self.ui.VVI_mode)  # Remove glow
         self.ui.AOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
         self.ui.AAI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
         self.ui.VVI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
@@ -229,14 +249,14 @@ class HomeScreen(QWidget):
 
     def VVI_on(self):
         # Show the corresponding parts for VVI mode
-        self.add_greenglow_to_widget(self.ui.VVI_mode)  # Add glow
-        self.ui.VVI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #00b075;")  # Change background color
+        self.add_redglow_to_widget(self.ui.VVI_mode)  # Add glow
+        self.ui.VVI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #f64d59;")  # Change background color
         self.ui.VVI_screen.show()  # Show the VVI screen
 
         # Remove all other modes
-        self.remove_greenglow_from_widget(self.ui.AOO_mode)  # Remove glow
-        self.remove_greenglow_from_widget(self.ui.AAI_mode)  # Remove glow
-        self.remove_greenglow_from_widget(self.ui.VOO_mode)  # Remove glow
+        self.remove_glow(self.ui.AOO_mode)  # Remove glow
+        self.remove_glow(self.ui.AAI_mode)  # Remove glow
+        self.remove_glow(self.ui.VOO_mode)  # Remove glow
         self.ui.AOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
         self.ui.AAI_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
         self.ui.VOO_mode.setStyleSheet("border-top-right-radius: 30px;border-bottom-right-radius: 30px;color: #ffffff;background-color: #393939;")  # Change background color
@@ -250,10 +270,18 @@ class HomeScreen(QWidget):
             self.ui.connect_label.setText("Device Connected")  # Show the connect label when connected
             self.ui.disconnect_button.hide()  # Hide the disconnect button when connected
             self.ui.connect_button.show()  # Show the connect button when connected
+            if (self.temp_serial == self.known_serial):
+                self.ui.serial_name_label.setText(self.username + "'s Device")  # Show the whos device is connected
+            else:
+                self.ui.serial_name_label.setText("Unknown Device")  # Show that the device is unkown
+            self.ui.serial_label.setText(self.temp_serial)  # Show the serial number of the device
         else:
-            self.ui.connect_label.setText("Device Disconnected")  # Hide the connect label when connected
-            self.ui.connect_button.hide()  # Hide the connect button when connected
-            self.ui.disconnect_button.show()  # Show the disconnect button when connected
+            self.ui.connect_label.setText("Device Disconnected")  # Change the text to disconnected text when device is disconnected
+            self.ui.connect_button.hide()  # Hide the connect button when disconnected
+            self.ui.disconnect_button.show()  # Show the disconnect button when disconnected
+            self.ui.serial_label.setText("")  # Change serial text to blank when no device is disconnected
+            self.ui.serial_name_label.setText("")  # Change serial name text to blank when no device is disconnected
+
 
     def toggle_connection(self):
         """This is an example function to toggle connection state."""
@@ -283,15 +311,164 @@ class HomeScreen(QWidget):
         # Apply the shadow effect to the widget
         widget.setGraphicsEffect(shadow)
 
-    def remove_greenglow_from_widget(self, widget):
+    def add_redglow_to_widget(self, widget):
+        # Create the shadow effect
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(50)  # Adjust for a stronger blur
+        shadow.setXOffset(5)      # Shadow offset horizontally
+        shadow.setYOffset(5)      # Shadow offset vertically
+        shadow.setColor(QColor(246, 77, 89, 150))  # Set shadow color (RGBA, A = transparency)
+
+        # Apply the shadow effect to the widget
+        widget.setGraphicsEffect(shadow)
+
+    def remove_glow(self, widget):
         # Remove the shadow effect from the widget
         widget.setGraphicsEffect(None)
+
+    def show_popup_info(self, title, message):
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.exec()
+
+    def show_popup_warning(self, title, message):
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.exec()
 
     def show_login_screen(self):
         # Create a new window/screen and keep a reference to it
         self.new_screen = LoginScreen()
         self.new_screen.show()
         self.close()  # Close the current login window
+
+    def init_plot(self, widget):
+        # Create a Matplotlib figure and canvas
+        figure = Figure()
+        canvas = FigureCanvas(figure)
+
+        # Set the canvas to fill the entire widget
+        canvas.setParent(widget)
+        canvas.setGeometry(widget.rect())  # Set geometry to fill the widget
+
+        # Add a blank plot (e.g., just set up the axes)
+        ax = figure.add_subplot(111)
+        ax.set_title("Initial Blank Plot")
+        ax.plot([], [])  # No data initially
+        canvas.draw()
+
+        # Ensure the canvas resizes with the widget
+        widget.installEventFilter(self)
+
+        # Return the figure and axis
+        return canvas, ax
+
+    def update_plot_AOO(self):
+        LRL = self.ui.AOO_lower_rate_limit.text()
+        URL = self.ui.AOO_upper_rate_limit.text()
+        AA = self.ui.AOO_atrial_amplitude.text()
+        APW = self.ui.AOO_atrial_pulse_width.text()
+
+        if LRL and URL and AA and APW:
+            # Clear the previous plot
+            self.ax_AOO.clear()
+
+            # Generate the data for VOO plot
+            x = np.linspace(0, 10, 100)
+            y = np.sin(x)
+
+            # Plot the new data on the VOO graph
+            self.ax_AOO.plot(x, y)
+            self.ax_AOO.set_title("AOO Mode Plot")
+
+            # Redraw the canvas to update the plot
+            self.canvas_AOO.draw()
+        else:
+            self.show_popup_warning("Process Failed", "Please enter all parameters.")
+
+    def update_plot_VOO(self):
+        LRL = self.ui.VOO_lower_rate_limit.text()
+        URL = self.ui.VOO_upper_rate_limit.text()
+        VA = self.ui.VOO_ventrical_amplitude.text()
+        VPW = self.ui.VOO_ventrical_pulse_width.text()
+
+        if LRL and URL and VA and VPW:
+            # Clear the previous plot
+            self.ax_VOO.clear()
+
+            # Generate the data for VOO plot
+            x = np.linspace(0, 10, 100)
+            y = np.sin(x)
+
+            # Plot the new data on the VOO graph
+            self.ax_VOO.plot(x, y)
+            self.ax_VOO.set_title("VOO Mode Plot")
+
+            # Redraw the canvas to update the plot
+            self.canvas_VOO.draw()
+        else:
+            self.show_popup_warning("Process Failed", "Please enter all parameters.")
+
+    def update_plot_VVI(self):
+        LRL = self.ui.VVI_lower_rate_limit.text()
+        URL = self.ui.VVI_upper_rate_limit.text()
+        VA = self.ui.VVI_ventrical_amplitude.text()
+        VPW = self.ui.VVI_ventrical_pulse_width.text()
+        VS = self.ui.VVI_ventrical_sensitivity.text()
+        VRP = self.ui.VVI_vrp.text()
+        H = self.ui.VVI_hysteresis.text()
+        RS = self.ui.VVI_rate_smoothing.text()
+
+        if LRL and URL and VA and VPW and VS and VRP and H and RS:
+            # Clear the previous plot
+            self.ax_VVI.clear()
+
+            # Generate the data for VOO plot
+            x = np.linspace(0, 10, 100)
+            y = np.sin(x)
+
+            # Plot the new data on the VOO graph
+            self.ax_VVI.plot(x, y)
+            self.ax_VVI.set_title("VVI Mode Plot")
+
+            # Redraw the canvas to update the plot
+            self.canvas_VVI.draw()
+        else:
+            self.show_popup_warning("Process Failed", "Please enter all parameters.")
+
+    def update_plot_AAI(self):
+        LRL = self.ui.AAI_lower_rate_limit.text()
+        URL = self.ui.AAI_upper_rate_limit.text()
+        AA = self.ui.AAI_atrial_amplitude.text()
+        APW = self.ui.AAI_atrial_pulse_width.text()
+        AS = self.ui.AAI_atrial_sensitivity.text()
+        ARP = self.ui.AAI_arp.text()
+        PVARP = self.ui.AAI_pvarp.text()
+        H = self.ui.AAI_hysteresis.text()
+        RS = self.ui.AAI_rate_smoothing.text()
+
+        if LRL and URL and AA and APW and AS and ARP and PVARP and H and RS:
+            # Clear the previous plot
+            self.ax_AAI.clear()
+
+            # Generate the data for VOO plot
+            x = np.linspace(0, 10, 100)
+            y = np.sin(x)
+
+            # Plot the new data on the VOO graph
+            self.ax_AAI.plot(x, y)
+            self.ax_AAI.set_title("AAI Mode Plot")
+
+            # Redraw the canvas to update the plot
+            self.canvas_AAI.draw()
+        else:
+            self.show_popup_warning("Process Failed", "Please enter all parameters.")
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
