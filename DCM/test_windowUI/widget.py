@@ -374,19 +374,30 @@ class HomeScreen(QWidget):
         APW = self.ui.AOO_atrial_pulse_width.text()
 
         if LRL and URL and AA and APW:
-            # Clear the previous plot
-            self.ax_AOO.clear()
+            try:
+                LRL = float(LRL)
+                URL = float(URL)
+                AA = float(AA)
+                APW = float(APW)
 
-            # Generate the data for VOO plot
-            x = np.linspace(0, 10, 100)
-            y = np.sin(x)
+                if (30 <= LRL <= 175) and (50 <= URL <= 175) and (0.5 <= AA <= 3.2) and (0.05 <= APW <=1.9):
+                    # Clear the previous plot
+                    self.ax_AOO.clear()
 
-            # Plot the new data on the VOO graph
-            self.ax_AOO.plot(x, y)
-            self.ax_AOO.set_title("AOO Mode Plot")
+                    # Generate the data for VOO plot
+                    x = np.linspace(0, 10, 100)
+                    y = np.sin(x)
 
-            # Redraw the canvas to update the plot
-            self.canvas_AOO.draw()
+                    # Plot the new data on the VOO graph
+                    self.ax_AOO.plot(x, y)
+                    self.ax_AOO.set_title("AOO Mode Plot")
+
+                    # Redraw the canvas to update the plot
+                    self.canvas_AOO.draw()
+                else:
+                    self.show_popup_warning("Process Failed", "Parameters out of range.")
+            except ValueError:
+                self.show_popup_warning("Process Failed", "Please enter valid numerical value.")
         else:
             self.show_popup_warning("Process Failed", "Please enter all parameters.")
 
@@ -397,19 +408,33 @@ class HomeScreen(QWidget):
         VPW = self.ui.VOO_ventrical_pulse_width.text()
 
         if LRL and URL and VA and VPW:
-            # Clear the previous plot
-            self.ax_VOO.clear()
+            try:
+                # Convert inputs to floats
+                LRL = float(LRL)
+                URL = float(URL)
+                VA = float(VA)
+                VPW = float(VPW)
 
-            # Generate the data for VOO plot
-            x = np.linspace(0, 10, 100)
-            y = np.sin(x)
+                # Check if parameters are within valid ranges
+                if (30 <= LRL <= 175) and (50 <= URL <= 175) and (3.5 <= VA <= 7.0) and (0.05 <= VPW <= 1.9):
+                    # Clear the previous plot
+                    self.ax_VOO.clear()
 
-            # Plot the new data on the VOO graph
-            self.ax_VOO.plot(x, y)
-            self.ax_VOO.set_title("VOO Mode Plot")
+                    # Generate the data for VOO plot
+                    x = np.linspace(0, 10, 100)
+                    y = np.sin(x)
 
-            # Redraw the canvas to update the plot
-            self.canvas_VOO.draw()
+                    # Plot the new data on the VOO graph
+                    self.ax_VOO.plot(x, y)
+                    self.ax_VOO.set_title("VOO Mode Plot")
+
+                    # Redraw the canvas to update the plot
+                    self.canvas_VOO.draw()
+                else:
+                    self.show_popup_warning("Process Failed", "Parameters out of range.")
+            except ValueError:
+                # Handle non-numerical input
+                self.show_popup_warning("Process Failed", "Please enter valid numerical values.")
         else:
             self.show_popup_warning("Process Failed", "Please enter all parameters.")
 
@@ -424,19 +449,39 @@ class HomeScreen(QWidget):
         RS = self.ui.VVI_rate_smoothing.text()
 
         if LRL and URL and VA and VPW and VS and VRP and H and RS:
-            # Clear the previous plot
-            self.ax_VVI.clear()
+            try:
+                # Convert inputs to floats
+                LRL = float(LRL)
+                URL = float(URL)
+                VA = float(VA)
+                VPW = float(VPW)
+                VS = float(VS)
+                VRP = float(VRP)
+                H = float(H)
+                RS = float(RS)
 
-            # Generate the data for VOO plot
-            x = np.linspace(0, 10, 100)
-            y = np.sin(x)
+                # Check if parameters are within valid ranges
+                if (30 <= LRL <= 175) and (50 <= URL <= 175) and (3.5 <= VA <= 7.0) and (0.05 <= VPW <= 1.9) and \
+                   (0.25 <= VS <= 10.0) and (150 <= VRP <= 500) and (0 <= H <= 175) and (0 <= RS <= 25):
 
-            # Plot the new data on the VOO graph
-            self.ax_VVI.plot(x, y)
-            self.ax_VVI.set_title("VVI Mode Plot")
+                    # Clear the previous plot
+                    self.ax_VVI.clear()
 
-            # Redraw the canvas to update the plot
-            self.canvas_VVI.draw()
+                    # Generate the data for VVI plot
+                    x = np.linspace(0, 10, 100)
+                    y = np.sin(x)
+
+                    # Plot the new data on the VVI graph
+                    self.ax_VVI.plot(x, y)
+                    self.ax_VVI.set_title("VVI Mode Plot")
+
+                    # Redraw the canvas to update the plot
+                    self.canvas_VVI.draw()
+                else:
+                    self.show_popup_warning("Process Failed", "Parameters out of range.")
+            except ValueError:
+                # Handle non-numerical input
+                self.show_popup_warning("Process Failed", "Please enter valid numerical values.")
         else:
             self.show_popup_warning("Process Failed", "Please enter all parameters.")
 
@@ -452,19 +497,41 @@ class HomeScreen(QWidget):
         RS = self.ui.AAI_rate_smoothing.text()
 
         if LRL and URL and AA and APW and AS and ARP and PVARP and H and RS:
-            # Clear the previous plot
-            self.ax_AAI.clear()
+            try:
+                # Convert inputs to floats
+                LRL = float(LRL)
+                URL = float(URL)
+                AA = float(AA)
+                APW = float(APW)
+                AS = float(AS)
+                ARP = float(ARP)
+                PVARP = float(PVARP)
+                H = float(H)
+                RS = float(RS)
 
-            # Generate the data for VOO plot
-            x = np.linspace(0, 10, 100)
-            y = np.sin(x)
+                # Check if parameters are within valid ranges
+                if (30 <= LRL <= 175) and (50 <= URL <= 175) and (0.5 <= AA <= 3.2) and (0.05 <= APW <= 1.9) and \
+                   (0.25 <= AS <= 10.0) and (150 <= ARP <= 500) and (150 <= PVARP <= 500) and \
+                   (0 <= H <= 175) and (0 <= RS <= 25):
 
-            # Plot the new data on the VOO graph
-            self.ax_AAI.plot(x, y)
-            self.ax_AAI.set_title("AAI Mode Plot")
+                    # Clear the previous plot
+                    self.ax_AAI.clear()
 
-            # Redraw the canvas to update the plot
-            self.canvas_AAI.draw()
+                    # Generate the data for AAI plot
+                    x = np.linspace(0, 10, 100)
+                    y = np.sin(x)
+
+                    # Plot the new data on the AAI graph
+                    self.ax_AAI.plot(x, y)
+                    self.ax_AAI.set_title("AAI Mode Plot")
+
+                    # Redraw the canvas to update the plot
+                    self.canvas_AAI.draw()
+                else:
+                    self.show_popup_warning("Process Failed", "Parameters out of range.")
+            except ValueError:
+                # Handle non-numerical input
+                self.show_popup_warning("Process Failed", "Please enter valid numerical values.")
         else:
             self.show_popup_warning("Process Failed", "Please enter all parameters.")
 

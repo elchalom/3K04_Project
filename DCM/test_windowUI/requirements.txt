@@ -1,1 +1,6 @@
 PySide6
+matplotlib
+pandas
+numpy
+sys
+os
